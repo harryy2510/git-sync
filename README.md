@@ -6,9 +6,9 @@
 
 Full clones, all branches, periodic pull, env file injection, post-sync hooks, health API.
 
-[![Build](https://github.com/harryy2510/repo-sync/actions/workflows/build.yml/badge.svg)](https://github.com/harryy2510/repo-sync/actions/workflows/build.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/harryy2510/repo-sync/build.yml?branch=main&label=CI&logo=github)](https://github.com/harryy2510/repo-sync/actions/workflows/build.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/ghcr.io-repo--sync-blue?logo=docker)](https://ghcr.io/harryy2510/repo-sync)
+[![Docker](https://img.shields.io/badge/ghcr.io-repo--sync-blue?logo=docker&logoColor=white)](https://github.com/harryy2510/repo-sync/pkgs/container/repo-sync)
 
 </div>
 
