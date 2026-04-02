@@ -1,6 +1,7 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs'
 import { execSync, type ExecSyncOptions } from 'child_process'
 import { join, dirname } from 'path'
+import { tmpdir } from 'os'
 import { parse as parseYaml } from 'yaml'
 import { createServer } from 'http'
 
@@ -223,13 +224,23 @@ function runPostSync(repo: RepoConfig, fullPath: string): void {
 // ─── Sync Loop ───────────────────────────────────────────────────────────────
 
 function setupGit(): void {
-  if (config.git_user_name) {
-    run(`git config --global user.name "${config.git_user_name}"`)
+  // Write a gitconfig to a writable location so we don't depend on $HOME/.gitconfig
+  // being writable (common issue when running as non-root in containers)
+  const gitconfigPath = join(tmpdir(), '.gitconfig')
+  const lines: string[] = []
+
+  if (config.git_user_name || config.git_user_email) {
+    lines.push('[user]')
+    if (config.git_user_name) lines.push(`\tname = ${config.git_user_name}`)
+    if (config.git_user_email) lines.push(`\temail = ${config.git_user_email}`)
   }
-  if (config.git_user_email) {
-    run(`git config --global user.email "${config.git_user_email}"`)
-  }
-  run(`git config --global --add safe.directory '*'`)
+
+  lines.push('[safe]')
+  lines.push('\tdirectory = *')
+
+  writeFileSync(gitconfigPath, lines.join('\n') + '\n')
+  process.env.GIT_CONFIG_GLOBAL = gitconfigPath
+  log('debug', `Wrote git config to ${gitconfigPath}`)
 }
 
 async function syncAll(): Promise<void> {
