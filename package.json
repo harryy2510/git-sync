@@ -1,0 +1,43 @@
+{
+  "name": "repo-sync",
+  "version": "1.0.0",
+  "description": "Configurable multi-repo git sync with health checks, env file injection, and post-sync hooks",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target node --format esm",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "git",
+    "sync",
+    "multi-repo",
+    "monorepo",
+    "docker",
+    "devops",
+    "worktree",
+    "ai-agents"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/harryy2510/repo-sync.git"
+  },
+  "bugs": {
+    "url": "https://github.com/harryy2510/repo-sync/issues"
+  },
+  "homepage": "https://github.com/harryy2510/repo-sync#readme",
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "yaml": "^2.7.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.13",
+    "typescript": "^5.8.3"
+  }
+}

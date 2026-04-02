@@ -1,0 +1,35 @@
+# repo-sync configuration
+# Mount this at /config/repos.yaml or set CONFIG_FILE env var
+
+workspace: /workspace
+interval: 120          # seconds between sync cycles
+ssh_key: /root/.ssh/id_ed25519
+ssh_strict_host_checking: false
+git_user_name: "Your Name"
+git_user_email: "you@example.com"
+health_port: 8080
+log_level: info         # debug | info | warn | error
+
+repos:
+  - url: git@github.com:acme-corp/frontend.git
+    path: acme-corp/frontend
+    ref: main
+
+  - url: git@github.com:acme-corp/backend-api.git
+    path: acme-corp/backend-api
+    ref: main
+
+  - url: git@github.com:acme-corp/shared-libs.git
+    path: acme-corp/shared-libs
+    ref: main
+
+  # Example with env files and post-sync hooks
+  # - url: git@github.com:org/repo.git
+  #   path: org/repo
+  #   ref: develop
+  #   env_files:
+  #     "repo.env": ".env.development"           # /env-files/repo.env -> .env.development
+  #     "repo.env.production": ".env.production"  # /env-files/repo.env.production -> .env.production
+  #   post_sync:
+  #     - "cp .env.development .dev.vars"
+  #   enabled: true

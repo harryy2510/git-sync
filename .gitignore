@@ -1,0 +1,22 @@
+node_modules/
+dist/
+*.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Lock files (bun.lock is tracked)
+package-lock.json
+yarn.lock

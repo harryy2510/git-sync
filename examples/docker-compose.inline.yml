@@ -1,0 +1,30 @@
+# Inline YAML config via env var — no config file needed
+# Good for platforms where you manage env vars in the UI
+
+services:
+  repo-sync:
+    image: ghcr.io/harryy2510/repo-sync:latest
+    container_name: repo-sync
+    restart: unless-stopped
+    volumes:
+      - /home/ubuntu/workspace:/workspace
+      - /root/.ssh:/root/.ssh:ro
+    environment:
+      HEALTH_PORT: "8080"
+      SSH_KEY_FILE: /root/.ssh/id_ed25519
+      GIT_USER_NAME: "Your Name"
+      GIT_USER_EMAIL: "you@example.com"
+      REPOS_CONFIG: |
+        workspace: /workspace
+        interval: 120
+        log_level: info
+        repos:
+          - url: git@github.com:acme-corp/frontend.git
+            path: acme-corp/frontend
+            ref: main
+          - url: git@github.com:acme-corp/backend-api.git
+            path: acme-corp/backend-api
+            ref: main
+          - url: git@github.com:acme-corp/shared-libs.git
+            path: acme-corp/shared-libs
+            ref: main

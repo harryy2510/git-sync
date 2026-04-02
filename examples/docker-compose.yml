@@ -1,0 +1,22 @@
+# Standard setup with YAML config file
+# Mount your repos.yaml and SSH keys
+
+services:
+  repo-sync:
+    image: ghcr.io/harryy2510/repo-sync:latest
+    container_name: repo-sync
+    restart: unless-stopped
+    volumes:
+      - ${WORKSPACE_DIR:-/home/ubuntu/workspace}:/workspace
+      - ${SSH_DIR:-/root/.ssh}:/root/.ssh:ro
+      - ${CONFIG_FILE:-./repos.yaml}:/config/repos.yaml:ro
+      # Optional: mount env files
+      # - /home/ubuntu/env-files:/env-files:ro
+    environment:
+      WORKSPACE: /workspace
+      SYNC_INTERVAL: ${SYNC_INTERVAL:-120}
+      HEALTH_PORT: ${HEALTH_PORT:-8080}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SSH_KEY_FILE: /root/.ssh/${SSH_KEY_NAME:-id_ed25519}
+      GIT_USER_NAME: ${GIT_USER_NAME:-Your Name}
+      GIT_USER_EMAIL: ${GIT_USER_EMAIL:-you@example.com}
