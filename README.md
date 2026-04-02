@@ -6,9 +6,9 @@
 
 Full clones, all branches, periodic pull, env file injection, post-sync hooks, health API.
 
-[![CI](https://img.shields.io/github/actions/workflow/status/harryy2510/repo-sync/build.yml?branch=main&label=CI&logo=github)](https://github.com/harryy2510/repo-sync/actions/workflows/build.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/harryy2510/git-sync/build.yml?branch=main&label=CI&logo=github)](https://github.com/harryy2510/git-sync/actions/workflows/build.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/ghcr.io-repo--sync-blue?logo=docker&logoColor=white)](https://github.com/harryy2510/repo-sync/pkgs/container/repo-sync)
+[![Docker](https://img.shields.io/badge/ghcr.io-git--sync-blue?logo=docker&logoColor=white)](https://github.com/harryy2510/git-sync/pkgs/container/git-sync)
 
 </div>
 
@@ -36,7 +36,7 @@ docker run -d \
   -e REPOS="your-org/frontend,your-org/backend" \
   -e SSH_KEY_FILE=/root/.ssh/id_ed25519 \
   -p 8080:8080 \
-  ghcr.io/harryy2510/repo-sync:latest
+  ghcr.io/harryy2510/git-sync:latest
 ```
 
 ### Option 2: YAML config file
@@ -61,7 +61,7 @@ docker run -d \
   -v ~/.ssh:/root/.ssh:ro \
   -v ./repos.yaml:/config/repos.yaml:ro \
   -p 8080:8080 \
-  ghcr.io/harryy2510/repo-sync:latest
+  ghcr.io/harryy2510/git-sync:latest
 ```
 
 ### Option 3: Inline YAML via env var
@@ -77,7 +77,7 @@ repos:
   - url: git@github.com:your-org/frontend.git
     path: your-org/frontend
 " \
-  ghcr.io/harryy2510/repo-sync:latest
+  ghcr.io/harryy2510/git-sync:latest
 ```
 
 ## Configuration
@@ -183,7 +183,7 @@ Files are copied after every successful sync where the commit hash changed.
 ```yaml
 services:
   repo-sync:
-    image: ghcr.io/harryy2510/repo-sync:latest
+    image: ghcr.io/harryy2510/git-sync:latest
     container_name: repo-sync
     restart: unless-stopped
     volumes:

@@ -2,8 +2,10 @@ name: Build and Publish
 
 on:
   push:
-    branches: [main]
-    tags: ["v*"]
+    branches:
+      - main
+    tags:
+      - "v*"
     paths:
       - "src/**"
       - "Dockerfile"
@@ -12,7 +14,8 @@ on:
       - "tsconfig.json"
       - ".github/workflows/build.yml"
   pull_request:
-    branches: [main]
+    branches:
+      - main
     paths:
       - "src/**"
       - "Dockerfile"

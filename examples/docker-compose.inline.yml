@@ -3,7 +3,7 @@
 
 services:
   repo-sync:
-    image: ghcr.io/harryy2510/repo-sync:latest
+    image: ghcr.io/harryy2510/git-sync:latest
     container_name: repo-sync
     restart: unless-stopped
     volumes:

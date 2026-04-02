@@ -14,7 +14,7 @@ Thanks for your interest in contributing! This guide will help you get started.
 
 ```bash
 # Clone the repo
-git clone https://github.com/harryy2510/repo-sync.git
+git clone https://github.com/harryy2510/git-sync.git
 cd repo-sync
 
 # Install dependencies
@@ -63,7 +63,7 @@ docker run --rm \
 
 ## Reporting Issues
 
-- Use [GitHub Issues](https://github.com/harryy2510/repo-sync/issues)
+- Use [GitHub Issues](https://github.com/harryy2510/git-sync/issues)
 - Include your Docker/OS version, configuration method, and relevant logs
 - For security vulnerabilities, please email the maintainers directly instead of opening a public issue
 
