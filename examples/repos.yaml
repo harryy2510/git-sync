@@ -1,4 +1,4 @@
-# repo-sync configuration
+# git-sync configuration
 # Mount this at /config/repos.yaml or set CONFIG_FILE env var
 
 workspace: /workspace

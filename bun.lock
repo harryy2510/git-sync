@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "repo-sync",
+      "name": "git-sync",
       "dependencies": {
         "yaml": "^2.7.1",
       },

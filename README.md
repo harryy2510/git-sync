@@ -1,6 +1,6 @@
 <div align="center">
 
-# repo-sync
+# git-sync
 
 **Keep multiple Git repositories in sync. Automatically.**
 
@@ -16,7 +16,7 @@ Full clones, all branches, periodic pull, env file injection, post-sync hooks, h
 
 ## Why?
 
-When you work with AI coding agents, cloud workspaces, or self-hosted dev environments, you need your repositories cloned, up-to-date, and ready to go. **repo-sync** runs as a lightweight sidecar container that keeps your repos synced with zero manual intervention.
+When you work with AI coding agents, cloud workspaces, or self-hosted dev environments, you need your repositories cloned, up-to-date, and ready to go. **git-sync** runs as a lightweight sidecar container that keeps your repos synced with zero manual intervention.
 
 - **Full clones** with all branches (supports git worktrees)
 - **Periodic sync** on a configurable interval
@@ -182,9 +182,9 @@ Files are copied after every successful sync where the commit hash changed.
 
 ```yaml
 services:
-  repo-sync:
+  git-sync:
     image: ghcr.io/harryy2510/git-sync:latest
-    container_name: repo-sync
+    container_name: git-sync
     restart: unless-stopped
     volumes:
       - ~/workspace:/workspace
@@ -203,7 +203,7 @@ services:
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  repo-sync container                            │
+│  git-sync container                            │
 │                                                 │
 │  ┌───────────┐   ┌──────────┐   ┌───────────┐  │
 │  │  Config    │──>│  Sync    │──>│  Health   │  │

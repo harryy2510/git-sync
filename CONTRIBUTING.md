@@ -1,4 +1,4 @@
-# Contributing to repo-sync
+# Contributing to git-sync
 
 Thanks for your interest in contributing! This guide will help you get started.
 
@@ -15,7 +15,7 @@ Thanks for your interest in contributing! This guide will help you get started.
 ```bash
 # Clone the repo
 git clone https://github.com/harryy2510/git-sync.git
-cd repo-sync
+cd git-sync
 
 # Install dependencies
 bun install
@@ -34,7 +34,7 @@ bun run build
 
 ```bash
 # Build the image locally
-docker build -t repo-sync:dev .
+docker build -t git-sync:dev .
 
 # Run with a simple config
 docker run --rm \
@@ -42,7 +42,7 @@ docker run --rm \
   -e REPOS_BASE_URL="https://github.com/" \
   -v /tmp/workspace:/workspace \
   -p 8080:8080 \
-  repo-sync:dev
+  git-sync:dev
 ```
 
 ## Making Changes

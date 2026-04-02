@@ -2,9 +2,9 @@
 # Good for platforms where you manage env vars in the UI
 
 services:
-  repo-sync:
+  git-sync:
     image: ghcr.io/harryy2510/git-sync:latest
-    container_name: repo-sync
+    container_name: git-sync
     restart: unless-stopped
     volumes:
       - /home/ubuntu/workspace:/workspace

@@ -331,7 +331,7 @@ function startHealthServer(port: number): void {
 async function main(): Promise<void> {
   config = loadConfig()
 
-  log('info', 'repo-sync starting', {
+  log('info', 'git-sync starting', {
     workspace: config.workspace,
     interval: config.interval,
     repos: config.repos.length,

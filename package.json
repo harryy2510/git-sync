@@ -1,5 +1,5 @@
 {
-  "name": "repo-sync",
+  "name": "git-sync",
   "version": "1.0.0",
   "description": "Configurable multi-repo git sync with health checks, env file injection, and post-sync hooks",
   "type": "module",
