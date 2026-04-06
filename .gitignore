@@ -20,3 +20,5 @@ Thumbs.db
 # Lock files (bun.lock is tracked)
 package-lock.json
 yarn.lock
+
+.remember

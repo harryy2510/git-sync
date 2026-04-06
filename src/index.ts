@@ -194,10 +194,11 @@ async function syncRepo(repo: RepoConfig, fullPath: string): Promise<{ hash: str
   try {
     const branch = await run('git symbolic-ref --short HEAD', fullPath)
     if (branch) {
-      await run('git pull --ff-only -q', fullPath)
+      const remote = await run(`git config branch.${branch}.remote`, fullPath).catch(() => 'origin')
+      await run(`git reset --hard ${remote}/${branch}`, fullPath)
     }
   } catch {
-    // Detached HEAD — skip pull
+    // Detached HEAD — skip reset
   }
 
   const hash = await run('git rev-parse HEAD', fullPath)
