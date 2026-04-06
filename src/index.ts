@@ -1,5 +1,5 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs'
-import { execSync, type ExecSyncOptions } from 'child_process'
+import { exec, type ExecOptions } from 'child_process'
 import { join, dirname } from 'path'
 import { tmpdir } from 'os'
 import { parse as parseYaml } from 'yaml'
@@ -11,7 +11,7 @@ type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 type RepoConfig = {
   url: string
-  path: string
+  path?: string
   ref?: string
   depth?: number
   env_files?: Record<string, string>
@@ -119,16 +119,26 @@ function buildConfigFromEnv(): Config {
   return applyEnvOverrides({ workspace, interval: 120, repos })
 }
 
-// ─── Git Operations ──────────────────────────────────────────────────────────
-
-function getExecOpts(cwd?: string): ExecSyncOptions {
-  return {
-    cwd,
-    stdio: config.log_level === 'debug' ? 'inherit' : 'pipe',
-    env: { ...process.env, GIT_SSH_COMMAND: buildSshCommand() },
-    timeout: 300_000,
+function derivePathFromUrl(url: string): string {
+  // git@github.com:org/repo.git -> org/repo
+  // https://github.com/org/repo.git -> org/repo
+  // https://github.com/org/repo -> org/repo
+  const cleaned = url.replace(/\.git$/, '')
+  const sshMatch = cleaned.match(/:([^/].*?)$/)
+  if (sshMatch) return sshMatch[1]
+  try {
+    const u = new URL(cleaned)
+    return u.pathname.replace(/^\//, '')
+  } catch {
+    return cleaned
   }
 }
+
+function resolveRepoPath(repo: RepoConfig): string {
+  return repo.path ?? derivePathFromUrl(repo.url)
+}
+
+// ─── Git Operations ──────────────────────────────────────────────────────────
 
 function buildSshCommand(): string {
   const parts = ['ssh']
@@ -141,17 +151,26 @@ function buildSshCommand(): string {
   return parts.join(' ')
 }
 
-function run(cmd: string, cwd?: string): string {
+function run(cmd: string, cwd?: string): Promise<string> {
   log('debug', `$ ${cmd}`, { cwd })
-  try {
-    return execSync(cmd, getExecOpts(cwd)).toString().trim()
-  } catch (err) {
-    const stderr = (err as { stderr?: Buffer }).stderr?.toString() ?? ''
-    throw new Error(`Command failed: ${cmd}\n${stderr}`)
+  const opts: ExecOptions = {
+    cwd,
+    env: { ...process.env, GIT_SSH_COMMAND: buildSshCommand() },
+    timeout: 300_000,
+    maxBuffer: 50 * 1024 * 1024,
   }
+  return new Promise((resolve, reject) => {
+    exec(cmd, opts, (err, stdout, stderr) => {
+      if (err) {
+        reject(new Error(`Command failed: ${cmd}\n${stderr}`))
+      } else {
+        resolve((stdout ?? '').toString().trim())
+      }
+    })
+  })
 }
 
-function cloneRepo(repo: RepoConfig, fullPath: string): void {
+async function cloneRepo(repo: RepoConfig, fullPath: string): Promise<void> {
   const parentDir = dirname(fullPath)
   if (!existsSync(parentDir)) {
     mkdirSync(parentDir, { recursive: true })
@@ -161,28 +180,28 @@ function cloneRepo(repo: RepoConfig, fullPath: string): void {
   const refArg = repo.ref && repo.ref !== 'HEAD' ? `--branch ${repo.ref}` : ''
 
   log('info', `Cloning ${repo.url} -> ${fullPath}`)
-  run(`git clone ${depthArg} ${refArg} ${repo.url} ${fullPath}`)
+  await run(`git clone ${depthArg} ${refArg} ${repo.url} ${fullPath}`)
 
   if (!repo.depth) {
-    run('git fetch --all -q', fullPath)
+    await run('git fetch --all -q', fullPath)
   }
 }
 
-function syncRepo(repo: RepoConfig, fullPath: string): { hash: string; branches: string[] } {
+async function syncRepo(repo: RepoConfig, fullPath: string): Promise<{ hash: string; branches: string[] }> {
   log('debug', `Fetching ${repo.url}`)
-  run('git fetch --all --prune -q', fullPath)
+  await run('git fetch --all --prune -q', fullPath)
 
   try {
-    const branch = run('git symbolic-ref --short HEAD', fullPath)
+    const branch = await run('git symbolic-ref --short HEAD', fullPath)
     if (branch) {
-      run('git pull --ff-only -q', fullPath)
+      await run('git pull --ff-only -q', fullPath)
     }
   } catch {
     // Detached HEAD — skip pull
   }
 
-  const hash = run('git rev-parse HEAD', fullPath)
-  const branchesRaw = run("git branch -a --format='%(refname:short)'", fullPath)
+  const hash = await run('git rev-parse HEAD', fullPath)
+  const branchesRaw = await run("git branch -a --format='%(refname:short)'", fullPath)
   const branches = branchesRaw.split('\n').filter(Boolean)
 
   return { hash, branches }
@@ -208,13 +227,13 @@ function copyEnvFiles(repo: RepoConfig, fullPath: string): void {
   }
 }
 
-function runPostSync(repo: RepoConfig, fullPath: string): void {
+async function runPostSync(repo: RepoConfig, fullPath: string): Promise<void> {
   if (!repo.post_sync?.length) return
 
   for (const cmd of repo.post_sync) {
     try {
       log('debug', `Running post-sync: ${cmd}`)
-      run(cmd, fullPath)
+      await run(cmd, fullPath)
     } catch (err) {
       log('warn', `Post-sync command failed: ${cmd}`, { error: (err as Error).message })
     }
@@ -243,48 +262,54 @@ function setupGit(): void {
   log('debug', `Wrote git config to ${gitconfigPath}`)
 }
 
+async function syncOne(repo: RepoConfig): Promise<void> {
+  const repoPath = resolveRepoPath(repo)
+  const fullPath = join(config.workspace, repoPath)
+  const status: SyncStatus = syncStatuses.get(repo.url) ?? {
+    repo: repo.url,
+    path: fullPath,
+    last_sync: null,
+    last_hash: null,
+    status: 'pending',
+  }
+
+  try {
+    if (!existsSync(join(fullPath, '.git'))) {
+      await cloneRepo(repo, fullPath)
+    }
+
+    const { hash, branches } = await syncRepo(repo, fullPath)
+
+    if (hash !== status.last_hash) {
+      log('info', `Updated ${repoPath}`, { hash: hash.slice(0, 8), branches: branches.length })
+      copyEnvFiles(repo, fullPath)
+      await runPostSync(repo, fullPath)
+    } else {
+      log('debug', `No changes: ${repoPath}`)
+    }
+
+    status.last_sync = new Date().toISOString()
+    status.last_hash = hash
+    status.status = 'ok'
+    status.branches = branches
+    delete status.error
+  } catch (err) {
+    log('error', `Failed to sync ${repo.url}`, { error: (err as Error).message })
+    status.status = 'error'
+    status.error = (err as Error).message
+  }
+
+  syncStatuses.set(repo.url, status)
+}
+
 async function syncAll(): Promise<void> {
   const enabledRepos = config.repos.filter((r) => r.enabled !== false)
   log('info', `Syncing ${enabledRepos.length} repos...`)
-
-  for (const repo of enabledRepos) {
-    const fullPath = join(config.workspace, repo.path)
-    const status: SyncStatus = syncStatuses.get(repo.url) ?? {
-      repo: repo.url,
-      path: fullPath,
-      last_sync: null,
-      last_hash: null,
-      status: 'pending',
-    }
-
-    try {
-      if (!existsSync(join(fullPath, '.git'))) {
-        cloneRepo(repo, fullPath)
-      }
-
-      const { hash, branches } = syncRepo(repo, fullPath)
-
-      if (hash !== status.last_hash) {
-        log('info', `Updated ${repo.path}`, { hash: hash.slice(0, 8), branches: branches.length })
-        copyEnvFiles(repo, fullPath)
-        runPostSync(repo, fullPath)
-      } else {
-        log('debug', `No changes: ${repo.path}`)
-      }
-
-      status.last_sync = new Date().toISOString()
-      status.last_hash = hash
-      status.status = 'ok'
-      status.branches = branches
-      delete status.error
-    } catch (err) {
-      log('error', `Failed to sync ${repo.url}`, { error: (err as Error).message })
-      status.status = 'error'
-      status.error = (err as Error).message
-    }
-
-    syncStatuses.set(repo.url, status)
-  }
+  await Promise.all(enabledRepos.map((repo) => syncOne(repo)))
+  const statuses = Array.from(syncStatuses.values())
+  const ok = statuses.filter((s) => s.status === 'ok').length
+  const errored = statuses.filter((s) => s.status === 'error').length
+  log('info', `Sync complete`, { ok, errored })
 }
 
 // ─── Health Server ───────────────────────────────────────────────────────────
