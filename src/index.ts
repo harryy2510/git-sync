@@ -28,6 +28,7 @@ type Config = {
   git_user_email?: string
   health_port?: number
   log_level?: LogLevel
+  concurrency?: number
   repos: RepoConfig[]
 }
 
@@ -46,6 +47,7 @@ type SyncStatus = {
 let config: Config
 const syncStatuses = new Map<string, SyncStatus>()
 const startTime = new Date().toISOString()
+let syncInFlight = false
 
 // ─── Logging ─────────────────────────────────────────────────────────────────
 
@@ -94,6 +96,7 @@ function applyEnvOverrides(c: Config): Config {
     git_user_email: process.env.GIT_USER_EMAIL ?? c.git_user_email,
     health_port: parseInt(process.env.HEALTH_PORT ?? String(c.health_port ?? 0)),
     log_level: (process.env.LOG_LEVEL as Config['log_level']) ?? c.log_level ?? 'info',
+    concurrency: parseInt(process.env.SYNC_CONCURRENCY ?? String(c.concurrency ?? 2)),
     repos: c.repos ?? [],
   }
 }
@@ -303,14 +306,36 @@ async function syncOne(repo: RepoConfig): Promise<void> {
   syncStatuses.set(repo.url, status)
 }
 
+async function runWithConcurrency<T>(items: T[], limit: number, worker: (item: T) => Promise<void>): Promise<void> {
+  const n = Math.max(1, limit)
+  let i = 0
+  const runners = Array.from({ length: Math.min(n, items.length) }, async () => {
+    while (i < items.length) {
+      const idx = i++
+      await worker(items[idx])
+    }
+  })
+  await Promise.all(runners)
+}
+
 async function syncAll(): Promise<void> {
-  const enabledRepos = config.repos.filter((r) => r.enabled !== false)
-  log('info', `Syncing ${enabledRepos.length} repos...`)
-  await Promise.all(enabledRepos.map((repo) => syncOne(repo)))
-  const statuses = Array.from(syncStatuses.values())
-  const ok = statuses.filter((s) => s.status === 'ok').length
-  const errored = statuses.filter((s) => s.status === 'error').length
-  log('info', `Sync complete`, { ok, errored })
+  if (syncInFlight) {
+    log('warn', 'Previous sync still running, skipping this tick')
+    return
+  }
+  syncInFlight = true
+  try {
+    const enabledRepos = config.repos.filter((r) => r.enabled !== false)
+    const limit = config.concurrency ?? 2
+    log('info', `Syncing ${enabledRepos.length} repos (concurrency=${limit})...`)
+    await runWithConcurrency(enabledRepos, limit, (repo) => syncOne(repo))
+    const statuses = Array.from(syncStatuses.values())
+    const ok = statuses.filter((s) => s.status === 'ok').length
+    const errored = statuses.filter((s) => s.status === 'error').length
+    log('info', `Sync complete`, { ok, errored })
+  } finally {
+    syncInFlight = false
+  }
 }
 
 // ─── Health Server ───────────────────────────────────────────────────────────
