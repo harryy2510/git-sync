@@ -1,16 +1,23 @@
-<div align="center">
+<p align="center">
+  <h1 align="center">Git Sync</h1>
+  <p align="center">
+    <strong>Keep multiple Git repositories in sync. Automatically.</strong>
+  </p>
+  <p align="center">
+    Full clones, all branches, periodic pull, env file injection, post-sync hooks, health API.
+  </p>
+  <p align="center">
+    <code>multi-repo</code> · <code>Docker sidecar</code> · <code>3 config modes</code> · <code>multi-arch</code>
+  </p>
+</p>
 
-# git-sync
-
-**Keep multiple Git repositories in sync. Automatically.**
-
-Full clones, all branches, periodic pull, env file injection, post-sync hooks, health API.
-
-[![CI](https://img.shields.io/github/actions/workflow/status/harryy2510/git-sync/build.yml?branch=main&label=CI&logo=github)](https://github.com/harryy2510/git-sync/actions/workflows/build.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/ghcr.io-git--sync-blue?logo=docker&logoColor=white)](https://github.com/harryy2510/git-sync/pkgs/container/git-sync)
-
-</div>
+<p align="center">
+  <a href="https://github.com/harryy2510/git-sync/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/harryy2510/git-sync/build.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT"></a>
+  <a href="https://github.com/harryy2510/git-sync/pkgs/container/git-sync"><img src="https://img.shields.io/badge/ghcr.io-git--sync-blue?style=flat-square&logo=docker&logoColor=white" alt="Docker"></a>
+  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"></a>
+  <a href="https://bun.sh"><img src="https://img.shields.io/badge/Bun-000000?style=flat-square&logo=bun&logoColor=white" alt="Bun"></a>
+</p>
 
 ---
 
@@ -23,7 +30,7 @@ When you work with AI coding agents, cloud workspaces, or self-hosted dev enviro
 - **Env file injection** to populate `.env` files after sync
 - **Post-sync hooks** to run arbitrary commands when code changes
 - **Health API** for monitoring and on-demand sync triggers
-- **Three config modes** — from simple env vars to full YAML
+- **Three config modes** -- from simple env vars to full YAML
 
 ## Quick Start
 
@@ -93,16 +100,16 @@ repos:
 | Variable | Default | Description |
 |---|---|---|
 | `CONFIG_FILE` | `/config/repos.yaml` | Path to YAML config |
-| `REPOS_CONFIG` | &mdash; | Inline YAML config |
-| `REPOS` | &mdash; | Comma-separated `org/repo` list |
+| `REPOS_CONFIG` | -- | Inline YAML config |
+| `REPOS` | -- | Comma-separated `org/repo` list |
 | `REPOS_BASE_URL` | `git@github.com:` | Prefix for `REPOS` entries |
 | `DEFAULT_REF` | `main` | Default branch for `REPOS` mode |
 | `WORKSPACE` | `/workspace` | Base directory for cloned repos |
 | `SYNC_INTERVAL` | `120` | Seconds between sync cycles |
-| `SSH_KEY_FILE` | &mdash; | Path to SSH private key |
+| `SSH_KEY_FILE` | -- | Path to SSH private key |
 | `SSH_STRICT_HOST_CHECKING` | `false` | Verify SSH host keys |
-| `GIT_USER_NAME` | &mdash; | Global `git user.name` |
-| `GIT_USER_EMAIL` | &mdash; | Global `git user.email` |
+| `GIT_USER_NAME` | -- | Global `git user.name` |
+| `GIT_USER_EMAIL` | -- | Global `git user.email` |
 | `HEALTH_PORT` | `8080` | Health/status API port (`0` to disable) |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
 
@@ -228,11 +235,11 @@ services:
     (volume)             (volume)
 ```
 
-- **Full `git clone`** (not shallow by default) — supports worktrees and branch switching
-- **`git fetch --all`** on each cycle — all remote branches stay available
+- **Full `git clone`** (not shallow by default) -- supports worktrees and branch switching
+- **`git fetch --all`** on each cycle -- all remote branches stay available
 - **Post-sync hooks only fire** when the commit hash actually changes
-- **Single container**, multiple repos — no orchestration needed
-- **Multi-arch image** — `linux/amd64` + `linux/arm64`
+- **Single container**, multiple repos -- no orchestration needed
+- **Multi-arch image** -- `linux/amd64` + `linux/arm64`
 
 ## Development
 
